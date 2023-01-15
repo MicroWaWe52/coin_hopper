@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:coin_hopper/CoinHopper.dart';
 import 'package:flutter/material.dart';
-import 'package:usb_serial/usb_serial.dart';
+import 'package:flutter_libserialport/flutter_libserialport.dart';
 
 void main() {
   runApp(const MyApp());
@@ -52,13 +52,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Future<List<UsbDevice>> getPorts() async {
-    var ports = await UsbSerial.listDevices();
+  List<String> getPorts() {
+    var ports = SerialPort.availablePorts;
     return ports;
   }
 
   @override
   Widget build(BuildContext context) {
+    var ports = getPorts();
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -66,32 +67,24 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-        appBar: AppBar(
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
-          title: Text(widget.title),
-        ),
-        body: FutureBuilder(
-          future: getPorts(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return ListView.builder(
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(snapshot.data![index].deviceName),
-                    onTap: () {
-                      var device = snapshot.data![index];
-                      var hopper = CoinHopper(device);
-                      var ser = hopper.getSerial(8);
-                      print(ser);
-                    },
-                  );
-                },
-              );
-            } else {
-              return CircularProgressIndicator();
-            }
-          },
-        ));
+      appBar: AppBar(
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(widget.title),
+      ),
+      body: ListView.builder(
+        itemCount: ports.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(ports[index]),
+            onTap: () {
+              var coinHopper = CoinHopper(ports[index]);
+
+              var serial = coinHopper.getSerial(8);
+            },
+          );
+        },
+      ),
+    );
   }
 }

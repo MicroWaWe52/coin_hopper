@@ -1,28 +1,28 @@
 import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:usb_serial/usb_serial.dart';
+import 'package:flutter_libserialport/flutter_libserialport.dart';
 
 class CoinHopper {
-  late UsbDevice device;
-  CoinHopper(UsbDevice portCode) {
-    device = portCode;
+  late SerialPort device;
+  CoinHopper(String portCode) {
+    device = SerialPort(portCode);
   }
 
   Future<Iterable<int>> getSerial(int address) async {
     var data = [address, 00, 01, 0xf2];
     var dataSerial = Uint8List.fromList(data);
-    device.port!.open();
+    device.openReadWrite();
 
-    await device.port!.setDTR(true);
-    await device.port!.setRTS(true);
+    device.config.baudRate = 9600;
+    device.config.parity = 0;
+    device.config.stopBits = 1;
+    device.config.bits = 8;
 
-    device.port!.setPortParameters(
-        9600, UsbPort.DATABITS_8, UsbPort.STOPBITS_1, UsbPort.PARITY_NONE);
     dataSerial.add(CalculateCrc(dataSerial));
-    await device.port!.write(dataSerial);
+    device.write(dataSerial);
 
-    var res = await device.port!.inputStream!.first;
+    var res = await device.read(8);
     return res.getRange(4, 7);
   }
 
