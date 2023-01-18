@@ -4,25 +4,26 @@ import 'dart:typed_data';
 import 'package:usb_serial/usb_serial.dart';
 
 class CoinHopper {
-  late UsbDevice device;
-  CoinHopper(UsbDevice portCode) {
-    device = portCode;
+  late UsbPort port;
+  CoinHopper(UsbPort p) {
+    port = p;
   }
 
   Future<Iterable<int>> getSerial(int address) async {
     var data = [address, 00, 01, 0xf2];
     var dataSerial = Uint8List.fromList(data);
-    device.port!.open();
 
-    await device.port!.setDTR(true);
-    await device.port!.setRTS(true);
+    port!.open();
 
-    device.port!.setPortParameters(
+    await port!.setDTR(true);
+    await port!.setRTS(true);
+
+    port!.setPortParameters(
         9600, UsbPort.DATABITS_8, UsbPort.STOPBITS_1, UsbPort.PARITY_NONE);
     dataSerial.add(CalculateCrc(dataSerial));
-    await device.port!.write(dataSerial);
+    await port!.write(dataSerial);
 
-    var res = await device.port!.inputStream!.first;
+    var res = await port!.inputStream!.first;
     return res.getRange(4, 7);
   }
 

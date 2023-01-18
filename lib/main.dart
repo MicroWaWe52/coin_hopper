@@ -71,17 +71,27 @@ class _MyHomePageState extends State<MyHomePage> {
           // the App.build method, and use it to set our appbar title.
           title: Text(widget.title),
         ),
-        body: FutureBuilder(
+        body: FutureBuilder<List<UsbDevice>>(
           future: getPorts(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               return ListView.builder(
+                itemCount: snapshot.data?.length,
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Text(snapshot.data![index].deviceName),
-                    onTap: () {
-                      var device = snapshot.data![index];
-                      var hopper = CoinHopper(device);
+                    onTap: () async {
+                      List<UsbDevice> devices = await UsbSerial.listDevices();
+                      print(devices);
+
+                      UsbPort port;
+                      if (devices.isEmpty) {
+                        return;
+                      }
+
+                      port = (await devices[0].create(UsbSerial.CP210x))!;
+
+                      var hopper = CoinHopper(port);
                       var ser = hopper.getSerial(8);
                       print(ser);
                     },

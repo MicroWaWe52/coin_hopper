@@ -60,12 +60,29 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    splits {
+    abi {
+        enable true
+        reset()
+        include 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'mips', 'mips64', 'arm64-v8a'
+        universalApk true
+    }
+}
 }
 
 flutter {
     source '../..'
 }
 
+allprojects {
+	repositories {
+		jcenter()
+		maven { url "https://jitpack.io" }
+	}
+}
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.github.felHR85:UsbSerial:6.1.0'
 }
