@@ -1,8 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:coin_hopper/CoinHopper.dart';
 import 'package:flutter/material.dart';
-import 'package:usb_serial/usb_serial.dart';
+import 'package:linux_serial/linux_serial.dart';
 
 void main() {
   runApp(const MyApp());
@@ -52,8 +50,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Future<List<UsbDevice>> getPorts() async {
-    var ports = await UsbSerial.listDevices();
+  Future<Set<SerialPort>> getPorts() async {
+    var ports = SerialPorts.ports;
     return ports;
   }
 
@@ -71,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // the App.build method, and use it to set our appbar title.
           title: Text(widget.title),
         ),
-        body: FutureBuilder<List<UsbDevice>>(
+        body: FutureBuilder<Set<SerialPort>>(
           future: getPorts(),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
@@ -79,19 +77,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 itemCount: snapshot.data?.length,
                 itemBuilder: (context, index) {
                   return ListTile(
-                    title: Text(snapshot.data![index].deviceName),
+                    title: Text(snapshot.data!.toList()[index].name),
                     onTap: () async {
-                      List<UsbDevice> devices = await UsbSerial.listDevices();
-                      print(devices);
+                      var port = snapshot.data!.first;
+                      var handle = port.open(baudrate: Baudrate.b9600);
 
-                      UsbPort port;
-                      if (devices.isEmpty) {
-                        return;
-                      }
-
-                      port = (await devices[0].create(UsbSerial.CP210x))!;
-
-                      var hopper = CoinHopper(port);
+                      var hopper = CoinHopper(handle);
                       var ser = hopper.getSerial(8);
                       print(ser);
                     },
