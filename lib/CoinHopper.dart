@@ -7,26 +7,32 @@ class CoinHopper {
   late SerialPort device;
   CoinHopper(String portCode) {
     device = SerialPort(portCode);
+
+    device.openReadWrite();
+    Future.delayed(const Duration(seconds: 2), () {
+      device.config.baudRate = 9600;
+      device.config.parity = 0;
+      device.config.stopBits = 1;
+      device.config.bits = 8;
+    });
+
+    final reader = SerialPortReader(device, timeout: 1000);
+    reader.stream.listen((data) {
+      print('received: $data');
+    });
   }
 
   Future<Iterable<int>> getSerial(int address) async {
-    var data = [address, 00, 01, 0xf2];
+    var data = [address, 00, 01, 0xfe];
+
+    data.add(CalculateCrc(data));
     var dataSerial = Uint8List.fromList(data);
-    device.openReadWrite();
 
-    device.config.baudRate = 9600;
-    device.config.parity = 0;
-    device.config.stopBits = 1;
-    device.config.bits = 8;
-
-    dataSerial.add(CalculateCrc(dataSerial));
-    device.write(dataSerial);
-
-    var res = await device.read(8);
-    return res.getRange(4, 7);
+    device.write(dataSerial, timeout: 100);
+    return data;
   }
 
-  CalculateCrc(Uint8List buffer) {
+  CalculateCrc(List<int> buffer) {
     var sum = 0;
 
     for (var element in buffer) {

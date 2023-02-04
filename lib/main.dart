@@ -57,6 +57,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return ports;
   }
 
+  CoinHopper? hopper;
+
   @override
   Widget build(BuildContext context) {
     var ports = getPorts();
@@ -78,9 +80,9 @@ class _MyHomePageState extends State<MyHomePage> {
           return ListTile(
             title: Text(ports[index]),
             onTap: () {
-              var coinHopper = CoinHopper(ports[index]);
+              hopper = hopper ?? CoinHopper(ports[index]);
 
-              var serial = coinHopper.getSerial(8);
+              var serial = hopper?.getSerial(8);
             },
           );
         },
