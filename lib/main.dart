@@ -1,8 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:coin_hopper/CoinHopper.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_libserialport/flutter_libserialport.dart';
 
 void main() {
   runApp(const MyApp());
@@ -52,14 +49,9 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<String> getPorts() {
-    var ports = SerialPort.availablePorts;
-    return ports;
-  }
-
   @override
   Widget build(BuildContext context) {
-    var ports = getPorts();
+    var ports = ["port"];
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //

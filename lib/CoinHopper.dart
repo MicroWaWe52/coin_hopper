@@ -1,32 +1,42 @@
-import 'dart:ffi';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
-
-import 'package:flutter_libserialport/flutter_libserialport.dart';
+import 'package:tcp_socket_connection/tcp_socket_connection.dart';
 
 class CoinHopper {
-  late SerialPort device;
+  TcpSocketConnection socketConnection = TcpSocketConnection("127.0.0.1", 4444);
   CoinHopper(String portCode) {
-    device = SerialPort(portCode);
+    startConnection();
+  }
+
+  void messageReceived(String msg) {
+    socketConnection.sendMessage("MessageIsReceived :D ");
+  }
+
+  //starting the connection and listening to the socket asynchronously
+  Future startConnection() async {
+    socketConnection.enableConsolePrint(
+        true); //use this to see in the console what's happening
+    if (await socketConnection.canConnect(5000, attempts: 3)) {
+      //check if it's possible to connect to the endpoint
+      await socketConnection.connect(5000, messageReceived, attempts: 3);
+      socketConnection.sendMessage("Connected");
+    }
   }
 
   Future<Iterable<int>> getSerial(int address) async {
     var data = [address, 00, 01, 0xf2];
     var dataSerial = Uint8List.fromList(data);
-    device.openReadWrite();
+    if (!socketConnection.isConnected()) {
+      await startConnection();
+    }
+    data.add(CalculateCrc(data));
 
-    device.config.baudRate = 9600;
-    device.config.parity = 0;
-    device.config.stopBits = 1;
-    device.config.bits = 8;
-
-    dataSerial.add(CalculateCrc(dataSerial));
-    device.write(dataSerial);
-
-    var res = await device.read(8);
-    return res.getRange(4, 7);
+    socketConnection.sendMessage("message");
+    return data;
   }
 
-  CalculateCrc(Uint8List buffer) {
+  CalculateCrc(List<int> buffer) {
     var sum = 0;
 
     for (var element in buffer) {
