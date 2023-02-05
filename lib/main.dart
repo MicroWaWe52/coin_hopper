@@ -50,6 +50,12 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var ports = ["port"];
     // This method is rerun every time setState is called, for instance as done
@@ -70,9 +76,8 @@ class _MyHomePageState extends State<MyHomePage> {
           return ListTile(
             title: Text(ports[index]),
             onTap: () {
-              var coinHopper = CoinHopper(ports[index]);
-
-              var serial = coinHopper.getSerial(8);
+              var coinHopper = CoinHopper();
+              coinHopper.dispense();
             },
           );
         },

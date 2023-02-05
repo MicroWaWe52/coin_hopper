@@ -1,39 +1,18 @@
-import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
-import 'package:tcp_socket_connection/tcp_socket_connection.dart';
+import 'package:http/http.dart' as http;
 
 class CoinHopper {
-  TcpSocketConnection socketConnection = TcpSocketConnection("127.0.0.1", 4444);
-  CoinHopper(String portCode) {
-    startConnection();
-  }
-
-  void messageReceived(String msg) {
-    socketConnection.sendMessage("MessageIsReceived :D ");
-  }
+  String baseEndpoint = "http://localhost:5555/";
+  void messageReceived(String msg) {}
 
   //starting the connection and listening to the socket asynchronously
-  Future startConnection() async {
-    socketConnection.enableConsolePrint(
-        true); //use this to see in the console what's happening
-    if (await socketConnection.canConnect(5000, attempts: 3)) {
-      //check if it's possible to connect to the endpoint
-      await socketConnection.connect(5000, messageReceived, attempts: 3);
-      socketConnection.sendMessage("Connected");
-    }
+
+  Future poll() async {
+    http.get(Uri.parse(baseEndpoint + "poll"));
   }
 
-  Future<Iterable<int>> getSerial(int address) async {
-    var data = [address, 00, 01, 0xf2];
-    var dataSerial = Uint8List.fromList(data);
-    if (!socketConnection.isConnected()) {
-      await startConnection();
-    }
-    data.add(CalculateCrc(data));
-
-    socketConnection.sendMessage("message");
-    return data;
+  Future dispense() async {
+    http.post(Uri.parse(baseEndpoint + "coins/5"));
   }
 
   CalculateCrc(List<int> buffer) {
